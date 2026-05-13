@@ -6,7 +6,7 @@
     });
 
     const initSmoothScroll = () => {
-        if (typeof Lenis === 'undefined') {
+        if (!window.matchMedia('(pointer: fine)').matches || typeof Lenis === 'undefined') {
             return;
         }
 
@@ -38,7 +38,24 @@
     };
 
     const startWhenIdle = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 600));
-    startWhenIdle(initSmoothScroll);
+    const loadSmoothScroll = () => {
+        if (!window.matchMedia('(pointer: fine)').matches) {
+            return;
+        }
+
+        if (typeof Lenis !== 'undefined') {
+            initSmoothScroll();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js';
+        script.async = true;
+        script.onload = initSmoothScroll;
+        document.head.appendChild(script);
+    };
+
+    startWhenIdle(loadSmoothScroll);
 
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const mobileMenu = document.getElementById('mobileMenu');
