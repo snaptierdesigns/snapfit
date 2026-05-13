@@ -5,8 +5,12 @@
         link.classList.toggle('active', href === currentPage || (currentPage === '' && href === 'index.html'));
     });
 
-    const lenis = typeof Lenis !== 'undefined'
-        ? new Lenis({
+    const initSmoothScroll = () => {
+        if (typeof Lenis === 'undefined') {
+            return;
+        }
+
+        const lenis = new Lenis({
             duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             orientation: 'vertical',
@@ -16,10 +20,8 @@
             smoothTouch: false,
             touchMultiplier: 2,
             infinite: false,
-        })
-        : null;
+        });
 
-    if (lenis) {
         const raf = (time) => {
             lenis.raf(time);
             requestAnimationFrame(raf);
@@ -33,7 +35,10 @@
                 lenis.scrollTo(anchor.getAttribute('href'));
             });
         });
-    }
+    };
+
+    const startWhenIdle = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 600));
+    startWhenIdle(initSmoothScroll);
 
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const mobileMenu = document.getElementById('mobileMenu');
@@ -115,14 +120,21 @@
         let isPaused = false;
         const speed = 0.5;
         const cardAdvance = 380;
+        let firstSetWidth = track.scrollWidth / 2;
 
-        const firstSetWidth = () => track.scrollWidth / 2;
+        const updateTrackWidth = () => {
+            firstSetWidth = track.scrollWidth / 2;
+        };
+
+        window.addEventListener('resize', () => {
+            requestAnimationFrame(updateTrackWidth);
+        }, { passive: true });
 
         const step = () => {
             if (!isPaused) {
                 scrollAmount += speed;
 
-                if (scrollAmount >= firstSetWidth()) {
+                if (scrollAmount >= firstSetWidth) {
                     scrollAmount = 0;
                 }
 
@@ -134,7 +146,7 @@
 
         nextBtn.addEventListener('click', () => {
             scrollAmount += cardAdvance;
-            if (scrollAmount >= firstSetWidth()) {
+            if (scrollAmount >= firstSetWidth) {
                 scrollAmount = 0;
             }
         });
@@ -142,7 +154,7 @@
         prevBtn.addEventListener('click', () => {
             scrollAmount -= cardAdvance;
             if (scrollAmount < 0) {
-                scrollAmount = firstSetWidth() - cardAdvance;
+                scrollAmount = firstSetWidth - cardAdvance;
             }
         });
 
